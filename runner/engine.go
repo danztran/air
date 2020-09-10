@@ -1,10 +1,12 @@
 package runner
 
 import (
+	"flag"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -39,6 +41,8 @@ func NewEngine(cfgPath string, debugMode bool) (*Engine, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	cfg.Build.Bin += " " + strings.Join(flag.Args(), " ")
 
 	logger := newLogger(cfg)
 	watcher, err := fsnotify.NewWatcher()

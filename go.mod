@@ -9,7 +9,8 @@ require (
 	github.com/imdario/mergo v0.3.8
 	github.com/mattn/go-colorable v0.1.4 // indirect
 	github.com/mattn/go-isatty v0.0.10 // indirect
-	github.com/pelletier/go-toml v1.6.0
+	github.com/pelletier/go-toml v1.6.0 // indirect
+	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.4.0 // indirect
 	golang.org/x/sys v0.0.0-20200808120158-1030fc2bf1d9 // indirect
 )

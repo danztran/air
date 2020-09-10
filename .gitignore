@@ -11,3 +11,7 @@ tmp/
 # IDE specific files
 .vscode
 .idea
+
+# binary
+air
+main

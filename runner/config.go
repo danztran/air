@@ -2,60 +2,61 @@ package runner
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/imdario/mergo"
-	"github.com/pelletier/go-toml"
+	"github.com/spf13/viper"
 )
 
 const (
 	dftTOML = ".air.toml"
+	dftYAML = ".air.yaml"
 	dftConf = ".air.conf"
 	airWd   = "air_wd"
 )
 
 type config struct {
-	Root   string   `toml:"root"`
-	TmpDir string   `toml:"tmp_dir"`
-	Build  cfgBuild `toml:"build"`
-	Color  cfgColor `toml:"color"`
-	Log    cfgLog   `toml:"log"`
-	Misc   cfgMisc  `toml:"misc"`
+	Root   string   `toml:"root" mapstructure:"root"`
+	TmpDir string   `toml:"tmp_dir" mapstructure:"tmp_dir"`
+	Build  cfgBuild `toml:"build" mapstructure:"build"`
+	Color  cfgColor `toml:"color" mapstructure:"color"`
+	Log    cfgLog   `toml:"log" mapstructure:"log"`
+	Misc   cfgMisc  `toml:"misc" mapstructure:"misc"`
 }
 
 type cfgBuild struct {
-	Cmd           string        `toml:"cmd"`
-	Bin           string        `toml:"bin"`
-	FullBin       string        `toml:"full_bin"`
-	Log           string        `toml:"log"`
-	IncludeExt    []string      `toml:"include_ext"`
-	ExcludeDir    []string      `toml:"exclude_dir"`
-	IncludeDir    []string      `toml:"include_dir"`
-	ExcludeFile   []string      `toml:"exclude_file"`
-	Delay         int           `toml:"delay"`
-	StopOnError   bool          `toml:"stop_on_error"`
-	SendInterrupt bool          `toml:"send_interrupt"`
-	KillDelay     time.Duration `toml:"kill_delay"`
+	Cmd           string        `toml:"cmd" mapstructure:"cmd"`
+	Bin           string        `toml:"bin" mapstructure:"bin"`
+	FullBin       string        `toml:"full_bin" mapstructure:"full_bin"`
+	Log           string        `toml:"log" mapstructure:"log"`
+	IncludeExt    []string      `toml:"include_ext" mapstructure:"include_ext"`
+	ExcludeDir    []string      `toml:"exclude_dir" mapstructure:"exclude_dir"`
+	IncludeDir    []string      `toml:"include_dir" mapstructure:"include_dir"`
+	ExcludeFile   []string      `toml:"exclude_file" mapstructure:"exclude_file"`
+	Delay         int           `toml:"delay" mapstructure:"delay"`
+	StopOnError   bool          `toml:"stop_on_error" mapstructure:"stop_on_error"`
+	SendInterrupt bool          `toml:"send_interrupt" mapstructure:"send_interrupt"`
+	KillDelay     time.Duration `toml:"kill_delay" mapstructure:"kill_delay"`
 }
 
 type cfgLog struct {
-	AddTime bool `toml:"time"`
+	AddTime bool `toml:"time" mapstructure:"time"`
 }
 
 type cfgColor struct {
-	Main    string `toml:"main"`
-	Watcher string `toml:"watcher"`
-	Build   string `toml:"build"`
-	Runner  string `toml:"runner"`
-	App     string `toml:"app"`
+	Main    string `toml:"main" mapstructure:"main"`
+	Watcher string `toml:"watcher" mapstructure:"watcher"`
+	Build   string `toml:"build" mapstructure:"build"`
+	Runner  string `toml:"runner" mapstructure:"runner"`
+	App     string `toml:"app" mapstructure:"app"`
 }
 
 type cfgMisc struct {
-	CleanOnExit bool `toml:"clean_on_exit"`
+	CleanOnExit bool `toml:"clean_on_exit" mapstructure:"clean_on_exit"`
 }
 
 func initConfig(path string) (cfg *config, err error) {
@@ -80,7 +81,7 @@ func initConfig(path string) (cfg *config, err error) {
 
 func defaultPathConfig() (*config, error) {
 	// when path is blank, first find `.air.toml`, `.air.conf` in `air_wd` and current working directory, if not found, use defaults
-	for _, name := range []string{dftTOML, dftConf} {
+	for _, name := range []string{dftYAML, dftTOML, dftConf} {
 		cfg, err := readConfByName(name)
 		if err == nil {
 			if name == dftConf {
@@ -146,14 +147,21 @@ func defaultConfig() config {
 }
 
 func readConfig(path string) (*config, error) {
-	data, err := ioutil.ReadFile(path)
+	cfg := new(config)
+	v := viper.New()
+
+	v.SetConfigFile(path)
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "__"))
+	v.AutomaticEnv()
+
+	err := v.ReadInConfig()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error read config / %w", err)
 	}
 
-	cfg := new(config)
-	if err = toml.Unmarshal(data, cfg); err != nil {
-		return nil, err
+	err = v.Unmarshal(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("error parse config / %w", err)
 	}
 
 	return cfg, nil
