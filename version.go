@@ -1,5 +1,5 @@
 package main
 
 const (
-	airVersion = "1.13.0"
+	airVersion = "1.13.1"
 )

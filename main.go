@@ -29,7 +29,7 @@ func main() {
 	fmt.Printf(`
   __    _   ___
  / /\  | | | |_)
-/_/--\ |_| |_| \_ v%s // live reload for Go apps, with Go%s
+/_/--\ |_| |_| \_ v%s // live reload for Go apps, with %s
 
 `, airVersion, runtime.Version())
 
